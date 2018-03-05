@@ -107,8 +107,9 @@ currentDesignData["designVector"] = designVector;
 DesignUpdate[modelData, currentDesignData]
 ]
 
-OptimalityCriteria[modelData_Association, designData_Association] := Module[{residual}, 
-residual = ExplicitDesignUpdate[modelData, designData, #][[1]]&;
+Options[OptimalityCriteria] = {"DensityFilter" -> Identity}
+OptimalityCriteria[modelData_Association, designData_Association, OptionsPattern[]] := Module[{residual}, 
+residual = OptionValue["DensityFilter"]@ExplicitDesignUpdate[modelData, designData, #][[1]]&;
 (* FixedPointSolver[residual, designData["designVector"]] *)
 FixedPoint[residual, designData["designVector"], SameTest -> (Max[Abs[#1-#2]]<1*^-2&)]
 ]
