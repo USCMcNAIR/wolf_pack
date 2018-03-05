@@ -9,6 +9,8 @@ BeginPackage["TopologyOptimzation2D`"]
 
 TOP2D::usage = "TOP2D provides functions to support topology optimization for minimum compliance of 2D rectangular structures"
 
+BisectionRoot::usage = "bisection method for solving roots of equations"
+
 LocalUpdateRule::usage = "LocalUpdateRule[designData, simData, utilizationMetric] Setoodeh et al update rule"
 
 DesignUpdate::usage = "update the current design to a new design"
@@ -74,16 +76,16 @@ VolumeFractionResidual[designVector_List, volumeFraction_] := Mean[designVector]
 (* high level interface *)
 VolumeFractionResidual[designData_Association] := VolumeFractionResidual[designData["designVector"], designData["volumeFraction"]]
 
-LagrangeMultiplierResidual[designData_Association, simData_Association, designData_Association, mu_] := Module[{designVector},
+LagrangeMultiplierResidual[simData_Association, designData_Association, mu_] := Module[{designVector},
 designVector = LocalUpdateRule[designData, simData, mu];
 VolumeFractionResidual[designVector, designData["volumeFraction"]]
 ]
 
-Options[BisectionRoot] = {LowerBound -> 1*^-9, UpperBound -> 1*^9}
+Options[BisectionRoot] = {"LowerBound" -> 1*^-9, "UpperBound" -> 1*^9}
 BisectionRoot[residual_,  tol_:1*^-3, OptionsPattern[]] :=Module[{iterNum, midPoint, lower, upper},
 iterNum = 0;
-lower = OptionValue[LowerBound];
-upper = OptionValue[UpperBound];
+lower = OptionValue["LowerBound"];
+upper = OptionValue["UpperBound"];
 While[(upper - lower)/(lower + upper) > tol, 
 iterNum ++;
 midPoint = 0.5 * (upper + lower);
@@ -98,6 +100,7 @@ designVector = LocalUpdateRule[designData, simData, mu];
 {designVector, simData, mu}
 ]
 
+
 ExplicitDesignUpdate[modelData_Association, designData_Association, designVector_List] := Module[{currentDesignData},
 currentDesignData = designData;
 currentDesignData["designVector"] = designVector;
@@ -109,6 +112,7 @@ residual = ExplicitDesignUpdate[modelData, designData, #][[1]]&;
 (* FixedPointSolver[residual, designData["designVector"]] *)
 FixedPoint[residual, designData["designVector"], SameTest -> (Max[Abs[#1-#2]]<1*^-2&)]
 ]
+
 
 
 (* TODO: ParametricDesignStudy 
