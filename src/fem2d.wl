@@ -82,23 +82,23 @@ Begin["`Private`"]
 
 
 (* Preliminaries *)
-SymbolicScalarField[scalar_, numElems_] := Subscript[scalar, #]& /@ Range[numElems]
+SymbolicScalarField[scalar_, numElems_NumericQ] := Subscript[scalar, #]& /@ Range[numElems]
 
-DensityField[numElems_] :=(Clear[\[Rho]]; SymbolicScalarField[\[Rho], numElems])
+DensityField[numElems_NumericQ] :=(Clear[\[Rho]]; SymbolicScalarField[\[Rho], numElems])
 
-DensityRules[densityField_, designVector_] := Dispatch@Thread[densityField -> designVector]
+DensityRules[densityField_List, designVector_List] := Dispatch@Thread[densityField -> designVector]
 
 (* Element Mesh Generation *)
 
-GetNumElemsLength[numElemsWidth_, aspectRatio_] := numElemsWidth * aspectRatio
+GetNumElemsLength[numElemsWidth_NumericQ, aspectRatio_NumericQ] := numElemsWidth * aspectRatio
 
-GetNumElems[numElemsWidth_, aspectRatio_] := numElemsWidth * GetNumElemsLength[numElemsWidth, aspectRatio]
+GetNumElems[numElemsWidth_NumericQ, aspectRatio_NumericQ] := numElemsWidth * GetNumElemsLength[numElemsWidth, aspectRatio]
 
-GetNumNodes[numElemsWidth_, aspectRatio_] := (numElemsWidth + 1) * (GetNumElemsLength[numElemsWidth, aspectRatio] + 1)
+GetNumNodes[numElemsWidth_NumericQ, aspectRatio_NumericQ] := (numElemsWidth + 1) * (GetNumElemsLength[numElemsWidth, aspectRatio] + 1)
 
-GetNumDof[numElemsWidth_, aspectRatio_] := 2 * GetNumNodes[numElemsWidth, aspectRatio]
+GetNumDof[numElemsWidth_NumericQ, aspectRatio_NumericQ] := 2 * GetNumNodes[numElemsWidth, aspectRatio]
 
-GenerateSquareElementMesh[numElemsWidth_, aspectRatio_] := 
+GenerateSquareElementMesh[numElemsWidth_NumericQ, aspectRatio_NumericQ] := 
   Module[{nodesNumbering, edofVec},
   nodesNumbering = Partition[Range[GetNumNodes[numElemsWidth, aspectRatio]], numElemsWidth + 1]\[Transpose];
   edofVec = Flatten[(2 * nodesNumbering[[;; -2, ;;-2]]  + 1)\[Transpose]];
@@ -109,7 +109,7 @@ ReshapeField[fieldVector_List, numElemsWidth_] := Transpose@Partition[fieldVecto
 
 
 (* Material Properties *)
-InterpolateYoungModulus[densityVector_List,  youngModulus_, penal_, voidModulus_] := voidModulus + Power[densityVector, penal] * (youngModulus - voidModulus)
+InterpolateYoungModulus[densityVector_List,  youngModulus_, penal_NumericQ, voidModulus_NumericQ] := voidModulus + Power[densityVector, penal] * (youngModulus - voidModulus)
 
 
 (* FE Modeling *)
