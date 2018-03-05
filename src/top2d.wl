@@ -5,9 +5,9 @@
 (* Copyright 2018  *)
 
 
-BeginPackage["TopologyOptimzation2D`", {"SquareFiniteElement`"}]
+BeginPackage["TopologyOptimzation2D`"]
 
-TOP2D::usage = "TOP2D provides functions for the compliance minimization"
+TOP2D::usage = "TOP2D provides functions to support topology optimization for minimum compliance of 2D rectangular structures"
 
 LocalUpdateRule::usage = "LocalUpdateRule[designData, simData, utilizationMetric] Setoodeh et al update rule"
 
@@ -20,7 +20,7 @@ OptimalityCriteria::usage = "OptimalityCriteria[modelData, designData] Fixed-poi
 
 
 Begin["`Private`"]
-(* Needs["SquareFiniteElement`"] *)
+Needs["SquareFiniteElement`", "fem2d.wl"]
 
 
 (*  low level interface *)
@@ -55,11 +55,14 @@ DesignUpdate[modelData, currentDesignData, utilizationMetric]
 (* TODO: if statement to set the numElems or numNodes as an Option, by default elems *)
 InitialDesignVector[modelData_, initialValue_:1.]:= ConstantArray[initialValue, modelData["numElems"]] 
 
-FixedPointSolver[residual_, initialGuess_, tol_:1*^-2]:= FixedPoint[residual, initialGuess, SameTest -> (Max[Abs[#1-#2]]<tol&)]
+
+(*BUG: when OptimalityCriteria calls this function it always converges to all zeros!!!!*)
+FixedPointSolver[residual_, initialGuess_, tol_:1*^-3]:= FixedPoint[residual, initialGuess, SameTest -> (Max[Abs[#1-#2]]<tol&)]
 
 OptimalityCriteria[modelData_Association, designData_Association, utilizationMetric_] := Module[{residual},
 residual = ExplicitDesignUpdate[modelData, designData, utilizationMetric, #][[1]]&;
-FixedPointSolver[residual, designData["designVector"]] 
+(* FixedPointSolver[residual, designData["designVector"]] *)
+FixedPoint[residual, designData["designVector"], SameTest -> (Max[Abs[#1-#2]]<1*^-2&)]
 ]
 
 
@@ -77,7 +80,7 @@ VolumeFractionResidual[designVector, designData["volumeFraction"]]
 ]
 
 Options[BisectionRoot] = {LowerBound -> 1*^-9, UpperBound -> 1*^9}
-BisectionRoot[residual_,  tol_:1*^-3] :=Module[{iterNum, midPoint, lower, upper},
+BisectionRoot[residual_,  tol_:1*^-3, OptionsPattern[]] :=Module[{iterNum, midPoint, lower, upper},
 iterNum = 0;
 lower = OptionValue[LowerBound];
 upper = OptionValue[UpperBound];
@@ -103,7 +106,8 @@ DesignUpdate[modelData, currentDesignData]
 
 OptimalityCriteria[modelData_Association, designData_Association] := Module[{residual}, 
 residual = ExplicitDesignUpdate[modelData, designData, #][[1]]&;
-FixedPointSolver[residual, designData["designVector"]]
+(* FixedPointSolver[residual, designData["designVector"]] *)
+FixedPoint[residual, designData["designVector"], SameTest -> (Max[Abs[#1-#2]]<1*^-2&)]
 ]
 
 
