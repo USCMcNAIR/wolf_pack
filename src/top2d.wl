@@ -48,7 +48,7 @@ designVector = LocalUpdateRule[designData, simData, utilizationMetric];
 ]
 
 (* the user explicitly gives the current design*)
-ExplicitDesignUpdate[modelData_Association, designData_Association, utilizationMetric_, designVector_List] := Module[{currentDesignData},
+ExplicitDesignUpdate[modelData_Association, designData_Association, utilizationMetric_NumericQ, designVector_List] := Module[{currentDesignData},
 currentDesignData = designData;
 currentDesignData["designVector"] = designVector;
 DesignUpdate[modelData, currentDesignData, utilizationMetric]
@@ -61,11 +61,6 @@ InitialDesignVector[modelData_, initialValue_:1.]:= ConstantArray[initialValue, 
 (*BUG: when OptimalityCriteria calls this function it always converges to all zeros!!!!*)
 FixedPointSolver[residual_, initialGuess_, tol_:1*^-3]:= FixedPoint[residual, initialGuess, SameTest -> (Max[Abs[#1-#2]]<tol&)]
 
-OptimalityCriteria[modelData_Association, designData_Association, utilizationMetric_] := Module[{residual},
-residual = ExplicitDesignUpdate[modelData, designData, utilizationMetric, #][[1]]&;
-(* FixedPointSolver[residual, designData["designVector"]] *)
-FixedPoint[residual, designData["designVector"], SameTest -> (Max[Abs[#1-#2]]<1*^-2&)]
-]
 
 
 (* volume fraction constraint *)
