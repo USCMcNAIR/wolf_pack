@@ -1,6 +1,6 @@
 (* ::Package:: *)
 
-(* Modules for finite element analysis of rectangles of arbitrary aspect ratio and mesh size*)
+(* Modules for finite element analysis of rectangular regions with arbitrary aspect ratio and mesh size*)
 (* by Luis Bahamonde Jacome *)
 (* Copyright 2018  *)
 
@@ -176,7 +176,7 @@ U
 
 (* Data processing*)
 
-ReshapeField[simData_Association, fieldName_String] := ReshapeField[simData[fieldName], simData["modelData"]["inputData"]["numElemsWidth"]]
+ReshapeField[fieldName_String, simData_Association] := ReshapeField[simData[fieldName], simData["modelData"]["inputData"]["numElemsWidth"]]
 
 PrepareRectangularStructureModel[inputData_Association] := Module[{numElems, numDof, elementDofMatrix, elementK},
 numElems = GetNumElems[inputData["numElemsWidth"], inputData["aspectRatio"]];
