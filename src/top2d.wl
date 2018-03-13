@@ -9,9 +9,14 @@ BeginPackage["TopologyOptimzation2D`"]
 
 TOP2D::usage = "TOP2D provides functions to support topology optimization for minimum compliance of 2D rectangular structures"
 
+UpdateKey::usage = "UpdateKey[data, key, value] updates an association's key string with the given value"
+
 BisectionRoot::usage = "bisection method for solving roots of equations"
 
-LocalUpdateRule::usage = "LocalUpdateRule[designData, simData, utilizationMetric] Setoodeh et al update rule"
+LocalUpdateRule::usage = "LocalUpdateRule[designData, simData, utilizationMetric] updates the designVector in designData using Setoodeh et al. rule
+LocalUpdateRule[designData, simData, utilizationMetric, \!\(\*
+StyleBox[\"nodalField\",\nFontWeight->\"Plain\"]\)] updates the nodal designVector if nodalField is True
+LocalUpdateRule[designVector, penal, Ymin, strainEnergyDensities, utilizationMetric] is the low-level interface" 
 
 DesignUpdate::usage = "update the current design to a new design"
 
@@ -25,9 +30,25 @@ Begin["`Private`"]
 Needs["SquareFiniteElement`", "fem2d.wl"]
 
 
-(*  low level interface *)
+UpdateKey[data_Association, key_?StringQ, value_]:= Module[{dataCopy},
+dataCopy = data;
+dataCopy[key] = value;
+dataCopy
+]
 
-LocalUpdateRule[designVector_List, penal_, Ymin_, strainEnergyDensities_List, utilizationMetric_] := Module[{newDensities},
+
+(* Nodes to Elements Mapping*)
+
+MapToNodes[field_List, modelData_Association]:= Mean@field[[#]]& /@ modelData["nodalConnectivity"]
+MapToNodes[field_?StringQ, simData_Association]:= MapToNodes[simData[field], simData["modelData"]]
+
+MapToElems[field_List, modelData_Association]:= (1/Mean[(1/field)[[#]]])& /@ modelData["elemConnectivity"]
+MapToElems[field_?StringQ, simData_Association]:= MapToElems[simData[field], simData["modelData"]]
+
+
+(* Fully Utilized Design*)
+
+LocalUpdateRule[designVector_List, penal_?NumericQ, Ymin_?NumericQ, strainEnergyDensities_List, utilizationMetric_?NumericQ] := Module[{newDensities},
 newDensities = Surd[strainEnergyDensities / (utilizationMetric/penal), penal + 1]; (* nth root *)
 newDensities = designVector * newDensities;
 newDensities[[Position[newDensities,_?(#<Ymin&)] //Flatten]] = Ymin;
@@ -35,44 +56,45 @@ newDensities[[Position[newDensities,_?(#>1.&)] //Flatten]] = 1.;
 newDensities
 ]
 
-(* high level interface *)
-LocalUpdateRule[designData_Association, simData_Association, utilizationMetric_] := 
-LocalUpdateRule[designData["designVector"], designData["penal"], designData["voidModulus"], simData["strainEnergyDensity"], utilizationMetric]
-                                                                                                     
+LocalUpdateRule[designData_Association, simData_Association, utilizationMetric_?NumericQ, nodalField:(_?BooleanQ):False] := 
+Module[{strainEnergyDensity},
+strainEnergyDensity=If[nodalField, MapToNodes[simData["strainEnergyDensity"], simData["modelData"]], simData["strainEnergyDensity"] ];
+LocalUpdateRule[designData["designVector"], designData["penal"], designData["voidModulus"], strainEnergyDensity, utilizationMetric]
+]                                                                                                                                                                                                         
 
-(* it is implicit that the current design is in the designData data structure*)
-DesignUpdate[modelData_Association, designData_Association, utilizationMetric_] := Module[{simData, designVector},
-simData = SimulateFEModel[modelData, designData];
-designVector = LocalUpdateRule[designData, simData, utilizationMetric];
+ToElemsIfNodal[nodalField_?BooleanQ, field_List, modelData_Association]:= If[nodalField, MapToElems[field, modelData], field]
+
+(* overload SimulateFEModel from fem2d.wl to map design to nodes *)
+SimulateFEModel[modelData_Association, designData_Association, nodalField:_?BooleanQ]:= Module[{mappedDesign},
+mappedDesign = ToElemsIfNodal[nodalField, designData["designVector"], modelData];
+simData = SimulateFEModel[modelData, UpdateKey[designData, "designVector", mappedDesign]]
+]
+
+(* assumption: the current design is implicitly defined in the designData data structure *)
+DesignUpdate[modelData_Association, designData_Association, utilizationMetric_?NumericQ, nodalField:(_?BooleanQ):False] := Module[{simData, designVector},
+simData = SimulateFEModel[modelData, designData, nodalField];
+designVector = LocalUpdateRule[designData, simData, utilizationMetric, nodalField];
 {designVector, simData}
 ]
 
-(* the user explicitly gives the current design*)
-ExplicitDesignUpdate[modelData_Association, designData_Association, utilizationMetric_NumericQ, designVector_List] := Module[{currentDesignData},
-currentDesignData = designData;
-currentDesignData["designVector"] = designVector;
-DesignUpdate[modelData, currentDesignData, utilizationMetric]
-]
 
 (* TODO: if statement to set the numElems or numNodes as an Option, by default elems *)
 InitialDesignVector[modelData_, initialValue_:1.]:= ConstantArray[initialValue, modelData["numElems"]] 
-
 
 (*BUG: when OptimalityCriteria calls this function it always converges to all zeros!!!!*)
 FixedPointSolver[residual_, initialGuess_, tol_:1*^-3]:= FixedPoint[residual, initialGuess, SameTest -> (Max[Abs[#1-#2]]<tol&)]
 
 
 
-(* volume fraction constraint *)
+(* Volume Fraction Constraint *)
 
-(* low level interface *)
 VolumeFractionResidual[designVector_List, volumeFraction_] := Mean[designVector] - volumeFraction
 
-(* high level interface *)
 VolumeFractionResidual[designData_Association] := VolumeFractionResidual[designData["designVector"], designData["volumeFraction"]]
 
-LagrangeMultiplierResidual[simData_Association, designData_Association, mu_] := Module[{designVector},
-designVector = LocalUpdateRule[designData, simData, mu];
+LagrangeMultiplierResidual[simData_Association, designData_Association, mu_, nodalField:(_?BooleanQ):False] := Module[{designVector},
+designVector = LocalUpdateRule[designData, simData, mu, nodalField];
+designVector = ToElemsIfNodal[nodalField, designVector, simData["modelData"]]; (* volume is computed using element volumes*)
 VolumeFractionResidual[designVector, designData["volumeFraction"]]
 ]
 
@@ -88,23 +110,20 @@ If[residual[midPoint] > 0., lower = midPoint, upper = midPoint]];
    {midPoint, iterNum}
 ]
 
-DesignUpdate[modelData_Association, designData_Association] := Module[{simData, mu, designVector},
-simData = SimulateFEModel[modelData, designData];
-mu = BisectionRoot[LagrangeMultiplierResidual[simData, designData, #]&][[1]];
-designVector = LocalUpdateRule[designData, simData, mu];
+DesignUpdate[modelData_Association, designData_Association, nodalField:(_?BooleanQ):False] := Module[{simData, mu, designVector},
+simData = SimulateFEModel[modelData, designData, nodalField];
+mu = BisectionRoot[LagrangeMultiplierResidual[simData, designData, #, nodalField]&][[1]];
+designVector = LocalUpdateRule[designData, simData, mu, nodalField];
 {designVector, simData, mu}
 ]
 
 
-ExplicitDesignUpdate[modelData_Association, designData_Association, designVector_List] := Module[{currentDesignData},
-currentDesignData = designData;
-currentDesignData["designVector"] = designVector;
-DesignUpdate[modelData, currentDesignData]
-]
+
 
 Options[OptimalityCriteria] = {"DensityFilter" -> Identity}
-OptimalityCriteria[modelData_Association, designData_Association, OptionsPattern[]] := Module[{residual}, 
-residual = OptionValue["DensityFilter"]@ExplicitDesignUpdate[modelData, designData, #][[1]]&;
+OptimalityCriteria[modelData_Association, designData_Association, OptionsPattern[]] := Module[{residual, elemField}, 
+elemField = Length@designData["designVector"] == modelData["numElems"];
+residual = OptionValue["DensityFilter"]@DesignUpdate[modelData, UpdateKey[designData, "designVector", #], !elemField][[1]]&;
 (* FixedPointSolver[residual, designData["designVector"]] *)
 FixedPoint[residual, designData["designVector"], SameTest -> (Max[Abs[#1-#2]]<1*^-2&)]
 ]
