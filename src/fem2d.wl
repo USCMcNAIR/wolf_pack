@@ -88,7 +88,8 @@ DensityField[numElems_] :=(Clear[\[Rho]]; SymbolicScalarField[\[Rho], numElems])
 
 DensityRules[densityField_List, designVector_List] := Dispatch@Thread[densityField -> designVector]
 
-(* Element Mesh Generation *)
+
+(* Element Mesh Generation: Statistics *)
 
 GetNumElemsLength[numElemsWidth_, aspectRatio_] := numElemsWidth * aspectRatio
 
@@ -98,9 +99,27 @@ GetNumNodes[numElemsWidth_, aspectRatio_] := (numElemsWidth + 1) * (GetNumElemsL
 
 GetNumDof[numElemsWidth_, aspectRatio_] := 2 * GetNumNodes[numElemsWidth, aspectRatio]
 
+(* Element Mesh Generation: Connectivity *)
+
+GlobalNodeNumbering[numElemsWidth_, aspectRatio_]:= Module[{numNodes},
+numNodes = GetNumNodes[numElemsWidth, aspectRatio];
+Transpose@Partition[Range[numNodes], numElemsWidth + 1]
+]
+
+ElementConnectivity[globalNodes_List]:=Module[{numNodesWidth, numNodesLength, elemNodes, f},
+{numNodesWidth, numNodesLength}=Dimensions[globalNodes];
+f=#;;(#+1)&;
+elemNodes = Table[globalNodes[[i, j]], {i,  f/@ Range[numNodesWidth-1]}, {j, f/@ Range[numNodesLength-1]}];
+(*localize nodes*)
+#[[{3,4,2,1}]]& /@ Partition[Flatten@Transpose[elemNodes], 4]
+]
+
+NodalConnectivity[elemConnectivity_List]:=
+Position[elemConnectivity, #][[All, 1]]& /@ Range@Max[elemConnectivity]
+
 GenerateSquareElementMesh[numElemsWidth_, aspectRatio_] := 
   Module[{nodesNumbering, edofVec},
-  nodesNumbering = Partition[Range[GetNumNodes[numElemsWidth, aspectRatio]], numElemsWidth + 1]\[Transpose];
+  nodesNumbering = GlobalNodeNumbering[numElemsWidth, aspectRatio];
   edofVec = Flatten[(2 * nodesNumbering[[;; -2, ;;-2]]  + 1)\[Transpose]];
   Table[edofVec, 8]\[Transpose] + Table[Join[{0, 1}, 2 * numElemsWidth + {2, 3, 0, 1}, {-2, -1} ], GetNumElems[numElemsWidth, aspectRatio]]
 ]
@@ -178,13 +197,18 @@ U
 
 ReshapeField[fieldName_String, simData_Association] := ReshapeField[simData[fieldName], simData["modelData"]["inputData"]["numElemsWidth"]]
 
-PrepareRectangularStructureModel[inputData_Association] := Module[{numElems, numDof, elementDofMatrix, elementK},
+PrepareRectangularStructureModel[inputData_Association] := Module[{numElems, numDof, elemConnectivity, nodalConnectivity, 
+                                                                    elementDofMatrix, elementK},
+(* mesh statistics*)
 numElems = GetNumElems[inputData["numElemsWidth"], inputData["aspectRatio"]];
 numDof = GetNumDof[inputData["numElemsWidth"], inputData["aspectRatio"]];
+(*mesh connectivity*)
+elemConnectivity = ElementConnectivity@GlobalNodeNumbering[inputData["numElemsWidth"], inputData["aspectRatio"]];
+nodalConnectivity = NodalConnectivity[elemConnectivity];
 elementDofMatrix = GenerateSquareElementMesh[inputData["numElemsWidth"], inputData["aspectRatio"]];
 elementK = ElementLocalStiffnessMatrix[inputData["poissonRatio"]];
-AssociationThread[{"inputData", "numElems", "numDof", "elementDofMatrix", "elementK"} ->
-                  { inputData,   numElems,   numDof,   elementDofMatrix,   elementK }]
+AssociationThread[{"inputData", "numElems", "numDof", "elemConnectivity", "nodalConnectivity", "elementDofMatrix", "elementK"} ->
+                  { inputData,   numElems,   numDof,   elemConnectivity,   nodalConnectivity, elementDofMatrix,   elementK }]
 ]
 
 ModelRectangularStructure[inputData_Association] := Module[{modelData, posK, numK, sparseK}, 
