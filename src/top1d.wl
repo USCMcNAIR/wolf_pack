@@ -7,35 +7,33 @@
 (* University of South Carolina *)
 (* e-mail: luisb@email.sc.edu *) 
  
-BeginPackage["TrussOptimTop`"]
+BeginPackage["TrussTopologyOpimization`"]
 
-TrussOptimTop::usage = 
-"  The following modules are available in the Truss Topology Opotimization package:
-    ** showGroundStructure
-** OptimalTruss
+TOP1D::usage = 
+"  The following modules are available in the Truss Topology Optimization package:
+    ** ShowGroundStructure
+    ** OptimalTruss
 "
 
-showGroundStructure::usage = 
-" showGroundStructure[nx, ny, distx, disty, DX, DY]  shows the 2-D ground structure made from bars and nodes:
-nx     -- number of nodes along x
-ny     -- number of nodes along y
-distx  -- neghbor connections along x
-disty  -- neghbor connections along y
-DX     -- node stepsize along x
-DY     -- node stepzise along y
+ShowGroundStructure::usage = "ShowGroundStructure[numx, numy, depthx, depthy, distX, disty] 
+shows the 2-D ground structure as a repeated pattern of nx-by-ny unit cells of bars with a DX-by-DY connection depth:
+numx     -- number of unit cells along x
+numy     -- number of unit cells along y
+depthx   -- neighbor connections along x
+depthy   -- neighbor connections along y
+distx    -- cell size along x
+disty    -- cells size along y
 "
 
-OptimalTruss::usage = 
-"
-OptimalTruss[xmax, ymax, nx, ny, supports, loads, \[IndentingNewLine]                    distx_:  1, disty_:0, kappa_: 1,  tol_: Sqrt[$MachineEpsilon]]
-
-xmax -- rectangular design domain length 
-ymax -- rectangular design domain width
-nx -- number of nodes along x
-ny -- number of nodes along y
-supports -- displacement boundary conditions: {spprt1, spprt2, ...} = {{{node_id},{constraint_switch}}, ...} = {{{id_x, id_y},{ux, uy}}, ...}
-loads -- applied loads:  {F1, F2, F3, ...} = {{{application_point}, {force_vector}}, ...} =  {  {{x1, y1},{Nx1, Ny1}}, {{x2, y2},{Nx2, Ny2}}, {{x3, y3},{Nx3, Ny3}}, ...  }
-"
+OptimalTruss::usage ="OptimalTruss[xmax, ymax, numx, numy, supports, loads, depth:1] generates a graphic of the optimal Michell truss
+xmax     -- length of ground structure
+ymax     -- width of ground structure
+numx     -- number of unit cells along x
+numy     -- number of unit cells along y
+supports -- list of support specs {{{i,j},{ux,uy}}, ..., {{i,j},{ux,uy}}}
+loads    -- list of load specs {{{i, j},{px, py}}, ..., {{i,j}, {px, py}}}
+depth    -- neighbor connections along x and y 
+" 
 
 
 Needs["Developer`"] ;
@@ -75,8 +73,7 @@ Sow[     Table[ {{X[[i]], Y[[j]]}, {X[[i +idx]], Y[[j + idy]] }}
     , {p, Length[patt]}]][[2]], 3], Real]] 
 
 (* -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -*)
-showGroundStructure[nx_, ny_, distx_, disty_, DX_, DY_] :=
-		Graphics[ Line[     ElXY[nx, ny, Patterns[nx, ny, distx, disty ], DX, DY]    ]]
+ShowGroundStructure[numx_?IntegerQ, numy_?IntegerQ, depthx_?IntegerQ, depthy_?IntegerQ, distx_:1, disty_:1] := Graphics@Line@ElXY[numx, numy, Patterns[numx, numy, depthx, depthy], distx, disty]
 
 
 
@@ -136,8 +133,7 @@ Delete[VectorP[loads, nx, ny], BC], Real]
 
 
 (* Topology Optimization *)
-OptimalTruss[xmax_, ymax_, nx_, ny_, supports_, loads_, 
-                    distx_:  1, disty_:0, kappa_: 1,  tol_: Sqrt[$MachineEpsilon]]:= 
+OptimalTruss[xmax_, ymax_, nx_, ny_, supports_, loads_, distx_:1, disty_:0, kappa_: 1,  tol_: Sqrt[$MachineEpsilon]]:= 
 Module[{ndx, ndy, dx, dy, pat, lcs, L, LL, BC, BB, PP,
               nn, ne, dof, S, A, e, g, a, t, vol, P, B},
 
