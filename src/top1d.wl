@@ -2,7 +2,7 @@
 
 (* MODULES for Truss Topology OPtimization *)
 (* by Luis Bahamonde *)
-(* Copyright 2016  *)
+(* Copyright 2018  *)
 (* McNair Aerospace Research Center *)
 (* University of South Carolina *)
 (* e-mail: luisb@email.sc.edu *) 
@@ -13,6 +13,8 @@ TOP1D::usage =
 "  The following modules are available in the Truss Topology Optimization package:
     ** ShowGroundStructure
     ** OptimalTruss
+This package wraps around the paper:
+T. Sok\[OAcute]\[LSlash], \[OpenCurlyDoubleQuote]A 99 line code for discretized Michell truss optimization written in Mathematica,\[CloseCurlyDoubleQuote] Struct. Multidiscip. Optim., vol. 43, no. 2, pp. 181\[Dash]190, Feb. 2011.
 "
 
 ShowGroundStructure::usage = "ShowGroundStructure[numx, numy, depthx, depthy, distX, disty] 
