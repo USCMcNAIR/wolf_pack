@@ -49,7 +49,8 @@ GetNumDof::usage = "GetNumDof[numElemsWidth, aspectRatio] calculates the total d
 
 GenerateSquareElementMesh::usage = "GenerateSquareElementMesh[numElemsWidth, aspectRatio] creates a matrix of the global degrees of freedom that belong to each element. The element number corresponds to the row index of the matrix."
 
-ReshapeField::usage = "ReshapeField[fieldVector, numElemsWidth] reshapes the field vector into a matrix with the same number of rows as numElemsWidth and the same number of columns as numElemsLength"
+ReshapeField::usage = "ReshapeField[fieldVector, numElemsWidth] reshapes the field vector into a matrix with the same number of rows as numElemsWidth and the same number of columns as numElemsLength
+ReshapeField[fieldName, simData] reshapes the field vector whose key is fieldName present in the simData data structure "
 
 InterpolateYoungModulus::usage = "InterpolateYoungModulus[densityVector,  youngModulus, penal, voidModulus] interpolates between voidModulus and youngModulus based on the density vector and penalization"
 
@@ -68,13 +69,17 @@ SolveDisplacements::usage = "SolveDisplacements[sparseK, fixedDof, sparseF] solv
 
 StrainEnergyDensityField::usage = "StrainEnergyDensityField[elementK, elementDofMatrix, U, youngModulus] provides a vector of the strain energy density of each element"
 
-ModelRectangularStructure::usage = "ModelRectangularStructure[inputData] models a rectangular structure with no boundary condition or loading definitions"
+ModelRectangularStructure::usage = "ModelRectangularStructure[inputData] models a rectangular structure with no boundary condition or loading definitions
+ModelRectangularStructure[inputData, designData] models a rectangular structure with symbolic element densities in the stiffness matrix"
 
-ModelMBBBeam::usage = "ModelMBBBeam[inputData] models the classical MBB beam exploiting the symmetry of the problem"
+ModelMBBBeam::usage = "ModelMBBBeam[inputData] models the classical MBB beam exploiting the symmetry of the problem
+ModelMBBBeam[inputData, designData] models the classical MBB beam with symbolic element densities"
 
-ModelCantileverBeam::usage = "ModelCantileverBeam[inputData] models a cantilever beam with a load applied in the last degree of freedom, in a frowny-face bending sense"
+ModelCantileverBeam::usage = "ModelCantileverBeam[inputData] models a cantilever beam with a load applied in the last degree of freedom, in a frowny-face bending sense
+ModelCantileverBeam[inputData, designData] models a cantilever beam with symbolic element densities"
 
-SimulateFEModel::usage = "SimulateFEModel[modelData] solves an FE model data structure to obtain the displacements, and retrieve the strain energy"
+SimulateFEModel::usage = "SimulateFEModel[modelData] solves an FE model data structure to obtain the displacements, and retrieve the strain energy
+SimulateFEModel[modelData, designData] solves an FE model for the given design densities"
 
 
 
