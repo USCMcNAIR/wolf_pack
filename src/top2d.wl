@@ -7,7 +7,10 @@
 
 BeginPackage["TopologyOptimzation2D`"]
 
-TOP2D::usage = "TOP2D provides functions to support topology optimization for minimum compliance of 2D rectangular structures"
+TOP2D::usage = "TOP2D provides functions to support topology optimization for minimum compliance of 2D rectangular structures:
+UpdateKey
+OptimalityCriteria
+InitialDesignVector"
 
 UpdateKey::usage = "UpdateKey[data, key, value] updates an association's key string with the given value"
 
