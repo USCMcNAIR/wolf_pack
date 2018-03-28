@@ -31,6 +31,10 @@ Note the modelData data structure contains as a key the inputData for traceabili
 Note the simData data structure contains as a key the modelData for traceability purposes.
 "
 
+GroundStructureRegion::usage = "GroundStructureRegion[inputData] represents a geometric rectangular region with square elements
+GroundStructureRegion[numElemsWidth, aspectRatio] represents a geometric rectangular region with numElemsWidth square elements along the width and numElemsWidth*aspectRatio elements along the length"
+
+
 FEM2DLowLevel::usage = "The following low-level functions are available:
                          GetNumElems
                          GetNumDof
@@ -93,6 +97,10 @@ DensityField[numElems_] :=(Clear[\[Rho]]; SymbolicScalarField[\[Rho], numElems])
 
 DensityRules[densityField_List, designVector_List] := Dispatch@Thread[densityField -> designVector]
 
+
+(* Element Mesh Generation: Visualization*)
+GroundStructureRegion[numElemsWidth_?IntegerQ, aspectRatio_?NumericQ]:=ArrayMesh[ConstantArray[1., {numElemsWidth,aspectRatio*numElemsWidth}], 
+                                                                        MeshCellStyle -> {{0, All}-> {PointSize[Medium], Red}, {1, All}-> { Black}, {2, All}-> {Opacity[0.8, Gray]}}]
 
 (* Element Mesh Generation: Statistics *)
 
@@ -199,6 +207,8 @@ U
 
 
 (* Data processing*)
+
+GroundStructureRegion[inputData_Association]:= GroundStructureRegion[inputData["numElemsWidth"], inputData["aspectRatio"]]
 
 ReshapeField[fieldName_String, simData_Association] := ReshapeField[simData[fieldName], simData["modelData"]["inputData"]["numElemsWidth"]]
 
