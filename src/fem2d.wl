@@ -8,9 +8,11 @@
 
 BeginPackage["SquareFiniteElement`"]
 
+
 FEM2D::usage = "FEM2D provides two interfaces for finite element analysis of rectangles of arbitrary aspect ratio and mesh size. 
                 The high-level interface requires minimum understanding of the finite element analysis process and is documented in ?FEM2DHighLevel
                 The low-level interface requires in-depth understanding of the finite element analysis process and is documented in ?FEM2DLowLevel"
+
 
 FEM2DHighLevel::usage = " The high-level interface of the fem2d package provides data processing functions to model and simulate a parameterized rectangular domain.
 
@@ -33,6 +35,18 @@ Note the simData data structure contains as a key the modelData for traceability
 
 GroundStructureRegion::usage = "GroundStructureRegion[inputData] represents a geometric rectangular region with square elements
 GroundStructureRegion[numElemsWidth, aspectRatio] represents a geometric rectangular region with numElemsWidth square elements along the width and numElemsWidth*aspectRatio elements along the length"
+
+ModelRectangularStructure::usage = "ModelRectangularStructure[inputData] models a rectangular structure with no boundary condition or loading definitions
+ModelRectangularStructure[inputData, designData] models a rectangular structure with symbolic element densities in the stiffness matrix"
+
+ModelMBBBeam::usage = "ModelMBBBeam[inputData] models the classical MBB beam exploiting the symmetry of the problem
+ModelMBBBeam[inputData, designData] models the classical MBB beam with symbolic element densities"
+
+ModelCantileverBeam::usage = "ModelCantileverBeam[inputData] models a cantilever beam with a load applied in the last degree of freedom, in a frowny-face bending sense
+ModelCantileverBeam[inputData, designData] models a cantilever beam with symbolic element densities"
+
+SimulateFEModel::usage = "SimulateFEModel[modelData] solves an FE model data structure to obtain the displacements, and retrieve the strain energy
+SimulateFEModel[modelData, designData] solves an FE model for the given design densities"
 
 
 FEM2DLowLevel::usage = "The following low-level functions are available:
@@ -72,19 +86,6 @@ SolveDisplacements::usage = "SolveDisplacements[sparseK, fixedDof, sparseF] solv
                              If sparseF is not given the output is the decomposed REDUCED stiffness matrix as a function to evaluate right-hand sides efficiently"
 
 StrainEnergyDensityField::usage = "StrainEnergyDensityField[elementK, elementDofMatrix, U, youngModulus] provides a vector of the strain energy density of each element"
-
-ModelRectangularStructure::usage = "ModelRectangularStructure[inputData] models a rectangular structure with no boundary condition or loading definitions
-ModelRectangularStructure[inputData, designData] models a rectangular structure with symbolic element densities in the stiffness matrix"
-
-ModelMBBBeam::usage = "ModelMBBBeam[inputData] models the classical MBB beam exploiting the symmetry of the problem
-ModelMBBBeam[inputData, designData] models the classical MBB beam with symbolic element densities"
-
-ModelCantileverBeam::usage = "ModelCantileverBeam[inputData] models a cantilever beam with a load applied in the last degree of freedom, in a frowny-face bending sense
-ModelCantileverBeam[inputData, designData] models a cantilever beam with symbolic element densities"
-
-SimulateFEModel::usage = "SimulateFEModel[modelData] solves an FE model data structure to obtain the displacements, and retrieve the strain energy
-SimulateFEModel[modelData, designData] solves an FE model for the given design densities"
-
 
 
 Begin["`Private`"]
