@@ -42,10 +42,12 @@ dataCopy
 
 (* Nodes to Elements Mapping*)
 
-MapToNodes[field_List, modelData_Association]:= Mean@field[[#]]& /@ modelData["nodalConnectivity"]
+NodalHomogenization[field_, penalization_, nodes_]:= Surd[Mean[Power[field, penalization][[nodes]]], penalization]
+MapToNodes[field_List, modelData_Association]:= NodalHomogenization[field, modelData["designData", "penal"], #]& /@ modelData["nodalConnectivity"]
 MapToNodes[field_?StringQ, simData_Association]:= MapToNodes[simData[field], simData["modelData"]]
 
-MapToElems[field_List, modelData_Association]:= (1/Mean[(1/field)[[#]]])& /@ modelData["elemConnectivity"]
+ElemHomogenization[field_, penalization_, elems_]:= Surd[1/Mean[1/Power[field, penalization][[elems]]], penalization]
+MapToElems[field_List, modelData_Association]:= ElemHomogenization[field, modelData["designData", "penal"], #]& /@ modelData["elemConnectivity"]
 MapToElems[field_?StringQ, simData_Association]:= MapToElems[simData[field], simData["modelData"]]
 
 
