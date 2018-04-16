@@ -156,7 +156,7 @@ ArrayFlatten[(1/24)/(1 - nu^2) *({{A11, A12}, {Transpose[A12], A11}} + nu * {{B1
 
 
 (* FE Post processing *)
-StrainEnergyDensity[elementK_List, elementU_List] := elementU.elementK.elementU 
+StrainEnergyDensity[elementK_List, elementU_List] := 0.5 * (elementU.elementK.elementU) 
  
 StrainEnergyDensityField[elementK_List, elementDofMatrix_, U_, youngModulus_] := Module[{elementsUMatrix, evalSED},
 elementsUMatrix = U[[#]]& /@ elementDofMatrix; 
