@@ -19,7 +19,7 @@ BisectionRoot::usage = "bisection method for solving roots of equations"
 LocalUpdateRule::usage = "LocalUpdateRule[designData, simData, utilizationMetric] updates the designVector in designData using Setoodeh et al. rule
 LocalUpdateRule[designData, simData, utilizationMetric, \!\(\*
 StyleBox[\"nodalField\",\nFontWeight->\"Plain\"]\)] updates the nodal designVector if nodalField is True
-LocalUpdateRule[designVector, penal, Ymin, strainEnergyDensities, utilizationMetric] is the low-level interface" 
+LocalUpdateRule[designVector, penal, Ymin, strainEnergyDensities, utilizationMetric] is the low-level interface"
 
 DesignUpdate::usage = "update the current design to a new design"
 
@@ -61,11 +61,11 @@ newDensities[[Position[newDensities,_?(#>1.&)] //Flatten]] = 1.;
 newDensities
 ]
 
-LocalUpdateRule[designData_Association, simData_Association, utilizationMetric_?NumericQ, nodalField:(_?BooleanQ):False] := 
+LocalUpdateRule[designData_Association, simData_Association, utilizationMetric_?NumericQ, nodalField:(_?BooleanQ):False] :=
 Module[{strainEnergyDensity},
 strainEnergyDensity=If[nodalField, MapToNodes[simData["strainEnergyDensity"], simData["modelData"]], simData["strainEnergyDensity"] ];
 LocalUpdateRule[designData["designVector"], designData["penal"], designData["voidModulus"], strainEnergyDensity, utilizationMetric]
-]                                                                                                                                                                                                         
+]
 
 ToElemsIfNodal[nodalField_?BooleanQ, field_List, modelData_Association]:= If[nodalField, MapToElems[field, modelData], field]
 
@@ -108,7 +108,7 @@ BisectionRoot[residual_,  tol_:1*^-3, OptionsPattern[]] :=Module[{iterNum, midPo
 iterNum = 0;
 lower = OptionValue["LowerBound"];
 upper = OptionValue["UpperBound"];
-While[(upper - lower)/(lower + upper) > tol, 
+While[(upper - lower)/(lower + upper) > tol,
 iterNum ++;
 midPoint = 0.5 * (upper + lower);
 If[residual[midPoint] > 0., lower = midPoint, upper = midPoint]];
@@ -126,7 +126,7 @@ designVector = LocalUpdateRule[designData, simData, mu, nodalField];
 
 
 Options[OptimalityCriteria] = {"DensityFilter" -> Identity}
-OptimalityCriteria[modelData_Association, designData_Association, OptionsPattern[]] := Module[{residual, elemField}, 
+OptimalityCriteria[modelData_Association, designData_Association, OptionsPattern[]] := Module[{residual, elemField},
 elemField = Length@designData["designVector"] == modelData["numElems"];
 residual = OptionValue["DensityFilter"]@DesignUpdate[modelData, UpdateKey[designData, "designVector", #], !elemField][[1]]&;
 (* FixedPointSolver[residual, designData["designVector"]] *)
@@ -135,8 +135,8 @@ FixedPoint[residual, designData["designVector"], SameTest -> (Max[Abs[#1-#2]]<1*
 
 
 
-(* TODO: ParametricDesignStudy 
-PrepareDesignRun[paramRule_, inputData_, designData_] := 
+(* TODO: ParametricDesignStudy
+PrepareDesignRun[paramRule_, inputData_, designData_] :=
 If[StringMatchQ[Keys[paramRule], #]& /@ ]
 DesignRun[paramRule_, inputData_, designData_]:= Module[{actualInputData, actualDesignData, modelData},
 {actualInputData, actualDesignData} = PrepareDesignRun[paramRule, inputData, designData];
@@ -149,4 +149,4 @@ Table[DesignRun[paramName \[Rule] thisValue, inputData, designData], {thisValue,
 
 
 End[]
-EndPackage[] 
+EndPackage[]

@@ -5,11 +5,11 @@
 (* Copyright 2018  *)
 (* McNair Aerospace Research Center *)
 (* University of South Carolina *)
-(* e-mail: luisb@email.sc.edu *) 
- 
+(* e-mail: luisb@email.sc.edu *)
+
 BeginPackage["TrussTopologyOpimization`"]
 
-TOP1D::usage = 
+TOP1D::usage =
 "  The following modules are available in the Truss Topology Optimization package:
     ** ShowGroundStructure
     ** OptimalTruss
@@ -17,7 +17,7 @@ This package wraps around the paper:
 T. Sok\[OAcute]\[LSlash], \[OpenCurlyDoubleQuote]A 99 line code for discretized Michell truss optimization written in Mathematica,\[CloseCurlyDoubleQuote] Struct. Multidiscip. Optim., vol. 43, no. 2, pp. 181\[Dash]190, Feb. 2011.
 "
 
-ShowGroundStructure::usage = "ShowGroundStructure[numx, numy, depthx, depthy, distX, disty] 
+ShowGroundStructure::usage = "ShowGroundStructure[numx, numy, depthx, depthy, distX, disty]
 shows the 2-D ground structure as a repeated pattern of nx-by-ny unit cells of bars with a DX-by-DY connection depth:
 numx     -- number of unit cells along x
 numy     -- number of unit cells along y
@@ -34,8 +34,8 @@ numx     -- number of unit cells along x
 numy     -- number of unit cells along y
 supports -- list of support specs {{{i,j},{ux,uy}}, ..., {{i,j},{ux,uy}}}
 loads    -- list of load specs {{{i, j},{px, py}}, ..., {{i,j}, {px, py}}}
-depth    -- neighbor connections along x and y 
-" 
+depth    -- neighbor connections along x and y
+"
 
 
 Needs["Developer`"] ;
@@ -58,8 +58,8 @@ INC = GenInc[Max[distx, disty]];
 ToPackedArray[Reap[Do[
 {idx, idy} = INC[[i]];
 {i0, i1} = If[idx>= 0, {0, nx - idx},{-idx, nx}];
-If[i0 <= i1 && idy <= ny && 
-  Abs[idx] <= distx && idy <= disty, 
+If[i0 <= i1 && idy <= ny &&
+  Abs[idx] <= distx && idy <= disty,
      Sow[{idx, idy, i0, i1, (i1 - i0 +1)  (ny - idy + 1)}]]
         , {i, Length[INC]}]][[2,1]], Integer]]
 (* -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -*)
@@ -72,7 +72,7 @@ ToPackedArray[Flatten[Reap[
 Do[{idx, idy, i0, i1, ne} = patt[[p]];
 Sow[     Table[ {{X[[i]], Y[[j]]}, {X[[i +idx]], Y[[j + idy]] }}
  , {j, 1, ny - idy + 1},{i, i0 +1, i1 + 1} ]     ];
-    , {p, Length[patt]}]][[2]], 3], Real]] 
+    , {p, Length[patt]}]][[2]], 3], Real]]
 
 (* -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -*)
 ShowGroundStructure[numx_?IntegerQ, numy_?IntegerQ, depthx_?IntegerQ, depthy_?IntegerQ, distx_:1, disty_:1] := Graphics@Line@ElXY[numx, numy, Patterns[numx, numy, depthx, depthy], distx, disty]
@@ -97,7 +97,7 @@ ne = patt[[p, 5]]; L = lcs[[p,1]]; Table[L,{ne}]
 
 
 (* Boundary Conditions *)
-BCList[supports_, nx_] := Module[{k, i, j, ux, uy}, 
+BCList[supports_, nx_] := Module[{k, i, j, ux, uy},
 ToPackedArray[ Partition[Union[ Flatten[ Reap[
 Do[ {{i,j},{ux, uy}} = supports[[s]];
 k = 2 ((nx + 1) j + i) + 1;
@@ -135,7 +135,7 @@ Delete[VectorP[loads, nx, ny], BC], Real]
 
 
 (* Topology Optimization *)
-OptimalTruss[xmax_, ymax_, nx_, ny_, supports_, loads_, distx_:1, disty_:0, kappa_: 1,  tol_: Sqrt[$MachineEpsilon]]:= 
+OptimalTruss[xmax_, ymax_, nx_, ny_, supports_, loads_, distx_:1, disty_:0, kappa_: 1,  tol_: Sqrt[$MachineEpsilon]]:=
 Module[{ndx, ndy, dx, dy, pat, lcs, L, LL, BC, BB, PP,
               nn, ne, dof, S, A, e, g, a, t, vol, P, B},
 
@@ -159,7 +159,7 @@ LL = Join[L, kappa L];
 BB = Join [B, -B, 2];
 Print["Matrix H ", Length[P], "x", Length[LL], " in ",
   ByteCount[BB] / 2.^20, "MB (", 16  dof  ne / 2.^30, "GB full)" ];
-t= Timing[S = LinearProgramming[LL, BB, PP, 
+t= Timing[S = LinearProgramming[LL, BB, PP,
    Method -> "InteriorPoint", Tolerance->tol];] [[1]];
 vol = S.LL;
  Print[ "Objective S.L = ", vol, " CPU time = ", t, "s"];

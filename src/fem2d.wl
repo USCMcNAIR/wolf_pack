@@ -9,14 +9,14 @@
 BeginPackage["SquareFiniteElement`"]
 
 
-FEM2D::usage = "FEM2D provides two interfaces for finite element analysis of rectangles of arbitrary aspect ratio and mesh size. 
+FEM2D::usage = "FEM2D provides two interfaces for finite element analysis of rectangles of arbitrary aspect ratio and mesh size.
                 The high-level interface requires minimum understanding of the finite element analysis process and is documented in ?FEM2DHighLevel
                 The low-level interface requires in-depth understanding of the finite element analysis process and is documented in ?FEM2DLowLevel"
 
 
 FEM2DHighLevel::usage = " The high-level interface of the fem2d package provides data processing functions to model and simulate a parameterized rectangular domain.
 
-The following data processing functions are available 
+The following data processing functions are available
 
 - modelData = ModelMBBBeam[inputData, designData]
 - modelData = ModelCantileverBeam[inputData, designData]
@@ -29,7 +29,7 @@ where the data structures are defined as associations with the following string 
 - modelData: intermediate variables necessary to solve for displacements
 - simData: 'U', 'strainEnergy', 'strainEnergyDensity'
 
-Note the modelData data structure contains as a key the inputData for traceability purposes. 
+Note the modelData data structure contains as a key the inputData for traceability purposes.
 Note the simData data structure contains as a key the modelData for traceability purposes.
 "
 
@@ -60,7 +60,7 @@ FEM2DLowLevel::usage = "The following low-level functions are available:
                          GlobalStiffnessMatrix
                          SolveDisplacements
                          StrainEnergyDensityField"
-                         
+
 GetNumElems::usage = "GetNumElems[numElemsWidth, aspectRatio] calculates the number of elements of the square mesh"
 
 GetNumDof::usage = "GetNumDof[numElemsWidth, aspectRatio] calculates the total degrees of freedom in the mesh"
@@ -73,15 +73,15 @@ ReshapeField[fieldName, simData] reshapes the field vector whose key is fieldNam
 InterpolateYoungModulus::usage = "InterpolateYoungModulus[densityVector,  youngModulus, penal, voidModulus] interpolates between voidModulus and youngModulus based on the density vector and penalization"
 
 ElementLocalStiffnessMatrix::usage = "ElementLocalStiffnessMatrix[nu] creates a bilinear quad element stiffness matrix, in local axes, normalized with respect to the Young modulus"
-		
+
 GlobalStiffnessVector::usage = "GlobalStiffnessVector[elementK, youngModulus, elementDofMatrix] creates a list of {posK, valK} for assembling the global stiffness matrix as a SparseArray.
                                 Young modulus can be a scalar or a vector field of symbolically interpolated moduli.
-                                If used for design, call it out of the optimization loop"	
+                                If used for design, call it out of the optimization loop"
 
-GlobalStiffnessMatrix::usage = " GlobalStiffnessMatrix[numDof, posK, numK, densityVector] builds the global stiffness matrix as a numerical SparseArray. 
+GlobalStiffnessMatrix::usage = " GlobalStiffnessMatrix[numDof, posK, numK, densityVector] builds the global stiffness matrix as a numerical SparseArray.
                                  If densityVector is given then numK must be a symbolic expression of \!\(\*SubscriptBox[\(\[Rho]\), \(i\)]\).
-                                 If used for design, call it within the optimization loop, once the design variables of the current iteration are known" 
-	
+                                 If used for design, call it within the optimization loop, once the design variables of the current iteration are known"
+
 SolveDisplacements::usage = "SolveDisplacements[sparseK, fixedDof, sparseF] solves for the global displacement vector.
                              If sparseF is not given the output is the decomposed REDUCED stiffness matrix as a function to evaluate right-hand sides efficiently"
 
@@ -100,7 +100,7 @@ DensityRules[densityField_List, designVector_List] := Dispatch@Thread[densityFie
 
 
 (* Element Mesh Generation: Visualization*)
-GroundStructureRegion[numElemsWidth_?IntegerQ, aspectRatio_?NumericQ]:=ArrayMesh[ConstantArray[1., {numElemsWidth,aspectRatio*numElemsWidth}], 
+GroundStructureRegion[numElemsWidth_?IntegerQ, aspectRatio_?NumericQ]:=ArrayMesh[ConstantArray[1., {numElemsWidth,aspectRatio*numElemsWidth}],
                                                                         MeshCellStyle -> {{0, All}-> {PointSize[Medium], Red}, {1, All}-> { Black}, {2, All}-> {Opacity[0.8, Gray]}}]
 
 (* Element Mesh Generation: Statistics *)
@@ -131,7 +131,7 @@ elemNodes = Table[globalNodes[[i, j]], {i,  f/@ Range[numNodesWidth-1]}, {j, f/@
 NodalConnectivity[elemConnectivity_List]:=
 Position[elemConnectivity, #][[All, 1]]& /@ Range@Max[elemConnectivity]
 
-GenerateSquareElementMesh[numElemsWidth_, aspectRatio_] := 
+GenerateSquareElementMesh[numElemsWidth_, aspectRatio_] :=
   Module[{nodesNumbering, edofVec},
   nodesNumbering = GlobalNodeNumbering[numElemsWidth, aspectRatio];
   edofVec = Flatten[(2 * nodesNumbering[[;; -2, ;;-2]]  + 1)\[Transpose]];
@@ -156,17 +156,17 @@ ArrayFlatten[(1/24)/(1 - nu^2) *({{A11, A12}, {Transpose[A12], A11}} + nu * {{B1
 
 
 (* FE Post processing *)
-StrainEnergyDensity[elementK_List, elementU_List] := 0.5 * (elementU.elementK.elementU) 
- 
+StrainEnergyDensity[elementK_List, elementU_List] := 0.5 * (elementU.elementK.elementU)
+
 StrainEnergyDensityField[elementK_List, elementDofMatrix_, U_, youngModulus_] := Module[{elementsUMatrix, evalSED},
-elementsUMatrix = U[[#]]& /@ elementDofMatrix; 
+elementsUMatrix = U[[#]]& /@ elementDofMatrix;
 evalSED = StrainEnergyDensity[elementK, #]&;
 (evalSED /@ elementsUMatrix) * youngModulus
 ]
 
 
 (* FE Analysis *)
-GlobalStiffnessPositions[elementDofMatrix_List] := 
+GlobalStiffnessPositions[elementDofMatrix_List] :=
 { (*rowK*) Flatten[Transpose /@ Outer[Times, elementDofMatrix, ConstantArray[1, 8]], 1] //Flatten,
   (*colK*) Flatten /@ Outer[Times, elementDofMatrix, ConstantArray[1, 8]] //Flatten}
 
@@ -213,7 +213,7 @@ GroundStructureRegion[inputData_Association]:= GroundStructureRegion[inputData["
 
 ReshapeField[fieldName_String, simData_Association] := ReshapeField[simData[fieldName], simData["modelData"]["inputData"]["numElemsWidth"]]
 
-PrepareRectangularStructureModel[inputData_Association] := Module[{numElems, numDof, elemConnectivity, nodalConnectivity, 
+PrepareRectangularStructureModel[inputData_Association] := Module[{numElems, numDof, elemConnectivity, nodalConnectivity,
                                                                     elementDofMatrix, elementK},
 (* mesh statistics*)
 numElems = GetNumElems[inputData["numElemsWidth"], inputData["aspectRatio"]];
@@ -235,7 +235,7 @@ AssociateTo[modelData, {"posK" -> posK, "numK" -> numK, "sparseK" -> sparseK}];
 modelData
 ]
 
-ModelRectangularStructure[inputData_Association, designData_Association] := Module[{modelData, densityField, youngModulusField, posK, valK, sparseK}, 
+ModelRectangularStructure[inputData_Association, designData_Association] := Module[{modelData, densityField, youngModulusField, posK, valK, sparseK},
 modelData = PrepareRectangularStructureModel[inputData];
 densityField = DensityField[modelData["numElems"]];
 youngModulusField = InterpolateYoungModulus[densityField, inputData["youngModulus"], designData["penal"], designData["voidModulus"]];
@@ -277,7 +277,7 @@ U = SolveDisplacements[sparseK, modelData["fixedDof"], modelData["sparseF"]];
 interpolatedYoungModulus = modelData["youngModulusField"] /. densityRules;
 strainEnergyDensity = StrainEnergyDensityField[modelData["elementK"], modelData["elementDofMatrix"], U, interpolatedYoungModulus];
 strainEnergy = Total[strainEnergyDensity];
-simData = AssociationThread[{"modelData", "designData", "densityRules",  "U", "strainEnergyDensity", "strainEnergy"} -> 
+simData = AssociationThread[{"modelData", "designData", "densityRules",  "U", "strainEnergyDensity", "strainEnergy"} ->
                             {modelData  ,  designData,   densityRules,    U ,  strainEnergyDensity ,  strainEnergy}];
 simData
 ]
