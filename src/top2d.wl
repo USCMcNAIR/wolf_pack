@@ -2,7 +2,6 @@
 
 (* Modules for topology optimization of 2D rectangular structures*)
 (* by Luis Bahamonde Jacome *)
-(* Copyright 2018  *)
 
 
 BeginPackage["TopologyOptimzation2D`"]

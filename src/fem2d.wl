@@ -2,7 +2,6 @@
 
 (* Modules for finite element analysis of rectangular regions with arbitrary aspect ratio and mesh size*)
 (* by Luis Bahamonde Jacome *)
-(* Copyright 2018  *)
 
 
 

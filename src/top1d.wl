@@ -1,11 +1,7 @@
 (* ::Package:: *)
 
 (* MODULES for Truss Topology OPtimization *)
-(* by Luis Bahamonde *)
-(* Copyright 2018  *)
-(* McNair Aerospace Research Center *)
-(* University of South Carolina *)
-(* e-mail: luisb@email.sc.edu *)
+(* by Luis Bahamonde Jacome *)
 
 BeginPackage["TrussTopologyOpimization`"]
 
