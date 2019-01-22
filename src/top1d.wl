@@ -9,7 +9,7 @@ TOP1D::usage =
 "  The following modules are available in the Truss Topology Optimization package:
     ** ShowGroundStructure
     ** OptimalTruss
-This package wraps around the paper:
+This package implements the paper:
 T. Sok\[OAcute]\[LSlash], \[OpenCurlyDoubleQuote]A 99 line code for discretized Michell truss optimization written in Mathematica,\[CloseCurlyDoubleQuote] Struct. Multidiscip. Optim., vol. 43, no. 2, pp. 181\[Dash]190, Feb. 2011.
 "
 
